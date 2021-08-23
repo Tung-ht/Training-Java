@@ -99,8 +99,8 @@ public class Menu {
 
         // read birth date
         while (true) {
-            System.out.println("Birth date: (dd/MM/yyyy, E.g: 15/07/2000)");
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            System.out.println("Birth date: (yyyy-MM-dd, E.g: 2000-07-15)");
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             try {
                 LocalDate dt = LocalDate.parse(scanner.nextLine(), fmt);
                 student.setBirthDate(dt);
@@ -250,8 +250,8 @@ public class Menu {
 
                 // update birth date
                 while (true) {
-                    System.out.println("Birth date: (dd/MM/yyyy, E.g: 15/07/2000)");
-                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                    System.out.println("Birth date: (yyyy-MM-dd, E.g: 2000-07-15)");
+                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                     try {
                         LocalDate dt = LocalDate.parse(scanner.nextLine(), fmt);
                         thisStudent.setBirthDate(dt);
@@ -583,7 +583,7 @@ public class Menu {
                         case "name" -> student.setName(studentReader.nextString());
                         case "birthDate" -> {
                             String birthDate = studentReader.nextString();
-                            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                             LocalDate dt = LocalDate.parse(birthDate, fmt);
                             student.setBirthDate(dt);
                         }

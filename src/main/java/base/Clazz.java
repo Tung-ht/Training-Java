@@ -48,4 +48,17 @@ public class Clazz implements Serializable {
         return Objects.hash(getClassId());
     }
 
+
+    /**
+     *
+     * @param c Clazz object
+     * @return 0 if this object has the same numberStudent as Clazz;
+     *         1 if less than;
+     *        -1 if larger than
+     */
+    public int compareByNumberOfStudent(Clazz c){
+        if (this == c) return 0;
+        if(getNumberStudent() == c.getNumberStudent()) return 0;
+        return getNumberStudent() < c.getNumberStudent() ? 1 : -1;
+    }
 }
