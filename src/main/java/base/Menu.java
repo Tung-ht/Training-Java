@@ -11,14 +11,14 @@ import java.util.*;
 
 public class Menu {
     private static final Scanner scanner = new Scanner(System.in);
-    private static final Set<Student> studentSet = new TreeSet<>(new Comparator<>(){
+    private static final Set<Student> studentSet = new TreeSet<>(new Comparator<>() {
         @Override
         public int compare(Student o1, Student o2) {
             return o1.getStudentId().compareTo(o2.getStudentId());
         }
     });
 
-    private static final Set<Clazz> clazzSet = new TreeSet<>(new Comparator<>(){
+    private static final Set<Clazz> clazzSet = new TreeSet<>(new Comparator<>() {
         @Override
         public int compare(Clazz o1, Clazz o2) {
             return o1.getClassId().compareTo(o2.getClassId());
@@ -420,13 +420,13 @@ public class Menu {
                     c = scanner.nextLine();
                     if (c.equalsIgnoreCase("y")) {
                         // delete student from studentSet
-                        if(thisStudent.getClassId() == null){
+                        if (thisStudent.getClassId() == null) {
                             studentSet.remove(thisStudent);
                         }
                         // thisStudent.classId != null, then find the related clazz
                         else {
                             for (Student s : studentSet) {
-                                if(s.getClassId() == null) continue;
+                                if (s.getClassId() == null) continue;
                                 if (s.getClassId().equals(thisStudent.getClassId())) {
                                     studentSet.remove(s);
                                     break;
@@ -458,63 +458,100 @@ public class Menu {
 
 
     // function 7
+//    private static void exportJSON() {
+//        System.out.println("Export to \"clazz.json\" and \"student.json\"");
+//        try (JsonWriter clazzWriter = new JsonWriter(new FileWriter("G:\\clazz.json"))) {
+//            clazzWriter.beginArray();
+//            for(Clazz c: clazzSet){
+//                clazzWriter.beginObject();
+//                clazzWriter.name("classId").value(c.getClassId());
+//                clazzWriter.name("name").value(c.getName());
+//                clazzWriter.endObject();
+//            }
+//            clazzWriter.endArray();
+//        } catch (IOException e){
+//            System.out.println("Error! Back to menu!");
+//            return;
+//        }
+//
+//        try (JsonWriter studentWriter = new JsonWriter(new FileWriter("G:\\student.json"))) {
+//            studentWriter.beginArray();
+//            for(Student s: studentSet){
+//                studentWriter.beginObject();
+//                studentWriter.name("studentId").value(s.getStudentId());
+//                studentWriter.name("name").value(s.getName());
+//                studentWriter.name("birthDate").value(s.getBirthDate().toString());
+//                studentWriter.name("gender").value(s.getGender());
+//                studentWriter.name("height").value(s.getHeight());
+//                studentWriter.name("weight").value(s.getWeight());
+//                studentWriter.name("classId").value(s.getClassId());
+//                studentWriter.endObject();
+//            }
+//            studentWriter.endArray();
+//        } catch (IOException e){
+//            System.out.println("Error! Back to menu!");
+//            return;
+//        }
+//        System.out.println("Export data successfully!");
+//    }
     private static void exportJSON() {
-        System.out.println("Export to \"clazz.json\" and \"student.json\"");
-        try (JsonWriter clazzWriter = new JsonWriter(new FileWriter("G:\\clazz.json"))) {
-            clazzWriter.beginArray();
-            for(Clazz c: clazzSet){
-                clazzWriter.beginObject();
-                clazzWriter.name("classId").value(c.getClassId());
-                clazzWriter.name("name").value(c.getName());
-                clazzWriter.endObject();
+        System.out.println("Export to \"data.json\"");
+        try (JsonWriter writer = new JsonWriter(new FileWriter("G:\\data.json"))) {
+            writer.beginArray();
+            Clazz[] clazzArray = clazzSet.toArray(new Clazz[0]);
+            MergeSort<Clazz, ClazzNStudentComparator> clazzSorter = new MergeSort<>();
+            clazzSorter.mergeSort(clazzArray, 0, clazzArray.length - 1, new ClazzNStudentComparator());
+            for (Clazz c : clazzArray) {
+                writer.beginObject();
+                writer.name("classId").value(c.getClassId());
+                writer.name("name").value(c.getName());
+                writer.name("number of student").value(c.getNumberStudent());
+                writer.name("students");
+                writer.beginArray();
+                Student[] studentArray = c.getStudents().toArray(new Student[0]);
+                MergeSort<Student, StudentHeightComparator> studentSorter = new MergeSort<>();
+                studentSorter.mergeSort(studentArray, 0, studentArray.length - 1, new StudentHeightComparator());
+                for (Student s : studentArray) {
+                    writer.beginObject();
+                    writer.name("studentId").value(s.getStudentId());
+                    writer.name("name").value(s.getName());
+                    writer.name("birthDate").value(s.getBirthDate().toString());
+                    writer.name("gender").value(s.getGender());
+                    writer.name("height").value(s.getHeight());
+                    writer.name("weight").value(s.getWeight());
+                    writer.name("classId").value(s.getClassId());
+                    writer.endObject();
+                }
+                writer.endArray();
+                writer.endObject();
             }
-            clazzWriter.endArray();
-        } catch (IOException e){
-            System.out.println("Error! Back to menu!");
-            return;
-        }
-
-        try (JsonWriter studentWriter = new JsonWriter(new FileWriter("G:\\student.json"))) {
-            studentWriter.beginArray();
-            for(Student s: studentSet){
-                studentWriter.beginObject();
-                studentWriter.name("studentId").value(s.getStudentId());
-                studentWriter.name("name").value(s.getName());
-                studentWriter.name("birthDate").value(s.getBirthDate().toString());
-                studentWriter.name("gender").value(s.getGender());
-                studentWriter.name("height").value(s.getHeight());
-                studentWriter.name("weight").value(s.getWeight());
-                studentWriter.name("classId").value(s.getClassId());
-                studentWriter.endObject();
-            }
-            studentWriter.endArray();
-        } catch (IOException e){
+            writer.endArray();
+        } catch (IOException e) {
             System.out.println("Error! Back to menu!");
             return;
         }
         System.out.println("Export data successfully!");
-
     }
 
 
     // function 8
     private static void exportBin() {
         System.out.println("Export to \"clazz.bin\" and \"student.bin\"");
-        try(FileOutputStream fosClazz = new FileOutputStream("G:\\clazz.bin");
-            FileOutputStream fosStudent = new FileOutputStream("G:\\student.bin");
-            ObjectOutputStream oosClazz = new ObjectOutputStream(fosClazz);
-            ObjectOutputStream oosStudent = new ObjectOutputStream(fosStudent)){
+        try (FileOutputStream fosClazz = new FileOutputStream("G:\\clazz.bin");
+             FileOutputStream fosStudent = new FileOutputStream("G:\\student.bin");
+             ObjectOutputStream oosClazz = new ObjectOutputStream(fosClazz);
+             ObjectOutputStream oosStudent = new ObjectOutputStream(fosStudent)) {
             //
-            for(Clazz c: clazzSet){
+            for (Clazz c : clazzSet) {
                 oosClazz.writeObject(c);
                 oosClazz.flush();
             }
-            for(Student s: studentSet){
+            for (Student s : studentSet) {
                 oosStudent.writeObject(s);
                 oosStudent.flush();
             }
             System.out.println("Export data successfully!");
-        } catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Error! Back to menu!");
         }
@@ -549,9 +586,9 @@ public class Menu {
                     switch (field) {
                         case "classId" -> clazz.setClassId(clazzReader.nextString());
                         case "name" -> {
-                            try{
+                            try {
                                 clazz.setName(clazzReader.nextString());
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 // name = null
                                 clazzReader.skipValue();
                             }
@@ -595,26 +632,26 @@ public class Menu {
                                 student.setGender('F');
                             }
                         }
-                        case "height" ->{
-                            try{
+                        case "height" -> {
+                            try {
                                 student.setHeight((float) studentReader.nextDouble());
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 // height = null
                                 studentReader.skipValue();
                             }
                         }
-                        case "weight" ->{
-                            try{
+                        case "weight" -> {
+                            try {
                                 student.setWeight((float) studentReader.nextDouble());
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 // weight = null
                                 studentReader.skipValue();
                             }
                         }
-                        case "classId" ->{
-                            try{
+                        case "classId" -> {
+                            try {
                                 student.setClassId(studentReader.nextString());
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 // classId = null
                                 studentReader.skipValue();
                             }
