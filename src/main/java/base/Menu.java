@@ -458,42 +458,6 @@ public class Menu {
 
 
     // function 7
-//    private static void exportJSON() {
-//        System.out.println("Export to \"clazz.json\" and \"student.json\"");
-//        try (JsonWriter clazzWriter = new JsonWriter(new FileWriter("G:\\clazz.json"))) {
-//            clazzWriter.beginArray();
-//            for(Clazz c: clazzSet){
-//                clazzWriter.beginObject();
-//                clazzWriter.name("classId").value(c.getClassId());
-//                clazzWriter.name("name").value(c.getName());
-//                clazzWriter.endObject();
-//            }
-//            clazzWriter.endArray();
-//        } catch (IOException e){
-//            System.out.println("Error! Back to menu!");
-//            return;
-//        }
-//
-//        try (JsonWriter studentWriter = new JsonWriter(new FileWriter("G:\\student.json"))) {
-//            studentWriter.beginArray();
-//            for(Student s: studentSet){
-//                studentWriter.beginObject();
-//                studentWriter.name("studentId").value(s.getStudentId());
-//                studentWriter.name("name").value(s.getName());
-//                studentWriter.name("birthDate").value(s.getBirthDate().toString());
-//                studentWriter.name("gender").value(s.getGender());
-//                studentWriter.name("height").value(s.getHeight());
-//                studentWriter.name("weight").value(s.getWeight());
-//                studentWriter.name("classId").value(s.getClassId());
-//                studentWriter.endObject();
-//            }
-//            studentWriter.endArray();
-//        } catch (IOException e){
-//            System.out.println("Error! Back to menu!");
-//            return;
-//        }
-//        System.out.println("Export data successfully!");
-//    }
     private static void exportJSON() {
         System.out.println("Export to \"data.json\"");
         try (JsonWriter writer = new JsonWriter(new FileWriter("G:\\data.json"))) {
@@ -536,30 +500,27 @@ public class Menu {
 
     // function 8
     private static void exportBin() {
-        System.out.println("Export to \"clazz.bin\" and \"student.bin\"");
-        try (FileOutputStream fosClazz = new FileOutputStream("G:\\clazz.bin");
-             FileOutputStream fosStudent = new FileOutputStream("G:\\student.bin");
-             ObjectOutputStream oosClazz = new ObjectOutputStream(fosClazz);
-             ObjectOutputStream oosStudent = new ObjectOutputStream(fosStudent)) {
+        System.out.println("Export to \"data.bin\"");
+        try (FileOutputStream fosClazz = new FileOutputStream("G:\\data.bin");
+             ObjectOutputStream oosClazz = new ObjectOutputStream(fosClazz);) {
             //
             for (Clazz c : clazzSet) {
                 oosClazz.writeObject(c);
                 oosClazz.flush();
-            }
-            for (Student s : studentSet) {
-                oosStudent.writeObject(s);
-                oosStudent.flush();
             }
             System.out.println("Export data successfully!");
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Error! Back to menu!");
         }
-//        try(FileInputStream fosClazz = new FileInputStream("G:\\clazz.bin");
+//        try(FileInputStream fosClazz = new FileInputStream("G:\\data.bin");
 //            ObjectInputStream oosClazz = new ObjectInputStream(fosClazz)){
 //            //
 //            Clazz clazz = (Clazz) oosClazz.readObject();
 //            System.out.println(clazz.getClassId() + clazz.getName());
+//            for(Student student: clazz.getStudents()){
+//                System.out.println(student.getName());
+//            }
 //        } catch (Exception e){
 //            e.printStackTrace();
 //            System.out.println("Error!");
@@ -569,106 +530,94 @@ public class Menu {
 
     // function 9
     private static void importJSON() {
-        System.out.println("Import data from \"student.json\" & \"clazz.json\":");
+        System.out.println("Import data from \"data.json\":");
         studentSet.clear();
         clazzSet.clear();
         clazzMapping.clear();
-
         // import clazz to clazzSet
-        try (JsonReader clazzReader = new JsonReader(new FileReader("G:\\clazz.json"))) {
-            clazzReader.beginArray();
-            while (clazzReader.hasNext()) {
+        try (JsonReader reader = new JsonReader(new FileReader("G:\\data.json"))) {
+            reader.beginArray();
+            while (reader.hasNext()) {
                 Clazz clazz = new Clazz();
-                clazzReader.beginObject();
-                while (clazzReader.hasNext()) {
-                    String field = clazzReader.nextName();
+                reader.beginObject();
+                while (reader.hasNext()) {
+                    String field1 = reader.nextName();
                     // id notnull; name nullable
-                    switch (field) {
-                        case "classId" -> clazz.setClassId(clazzReader.nextString());
+                    switch (field1) {
+                        case "classId" -> clazz.setClassId(reader.nextString());
                         case "name" -> {
                             try {
-                                clazz.setName(clazzReader.nextString());
+                                clazz.setName(reader.nextString());
                             } catch (Exception e) {
                                 // name = null
-                                clazzReader.skipValue();
+                                reader.skipValue();
                             }
                         }
-                        default -> clazzReader.skipValue(); //avoid some unhandle events
+                        case "students" -> {
+                            reader.beginArray();
+                            while (reader.hasNext()) {
+                                Student student = new Student();
+                                reader.beginObject();
+                                // id, name, birthDate, gender, class id notnull; height, weight nullable
+                                while (reader.hasNext()){
+                                    String field2 = reader.nextName();
+                                    switch (field2) {
+                                        case "studentId" -> student.setStudentId(reader.nextString());
+                                        case "name" -> student.setName(reader.nextString());
+                                        case "birthDate" -> {
+                                            String birthDate = reader.nextString();
+                                            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                                            LocalDate dt = LocalDate.parse(birthDate, fmt);
+                                            student.setBirthDate(dt);
+                                        }
+                                        case "gender" -> {
+                                            String gender = reader.nextString();
+                                            if (gender.equalsIgnoreCase("m")) {
+                                                student.setGender('M');
+                                            } else {
+                                                student.setGender('F');
+                                            }
+                                        }
+                                        case "height" -> {
+                                            try {
+                                                student.setHeight((float) reader.nextDouble());
+                                            } catch (Exception e) {
+                                                // height = null
+                                                reader.skipValue();
+                                            }
+                                        }
+                                        case "weight" -> {
+                                            try {
+                                                student.setWeight((float) reader.nextDouble());
+                                            } catch (Exception e) {
+                                                // weight = null
+                                                reader.skipValue();
+                                            }
+                                        }
+                                        case "classId" -> {
+                                            try {
+                                                student.setClassId(reader.nextString());
+                                            } catch (Exception e) {
+                                                // classId = null
+                                                reader.skipValue();
+                                            }
+                                        }
+                                        default -> reader.skipValue(); //avoid some unhandle events
+                                    }
+                                }
+                                reader.endObject();
+                                clazz.getStudents().add(student);
+                                studentSet.add(student);
+                            }
+                            reader.endArray();
+                        }
+                        default -> reader.skipValue(); //avoid some unhandle events
                     }
                 }
-                clazzReader.endObject();
+                reader.endObject();
                 clazzSet.add(clazz);
             }
-            clazzReader.endArray();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Error! Back to menu!");
-            return;
-        }
-
-        // import student to student set
-        try (JsonReader studentReader = new JsonReader(new FileReader("G:\\student.json"))) {
-            studentReader.beginArray();
-            while (studentReader.hasNext()) {
-                Student student = new Student();
-                studentReader.beginObject();
-                while (studentReader.hasNext()) {
-                    String field = studentReader.nextName();
-                    // id, name, birthDate, gender notnull; height, weight, class id nullable
-                    switch (field) {
-                        case "studentId" -> student.setStudentId(studentReader.nextString());
-                        case "name" -> student.setName(studentReader.nextString());
-                        case "birthDate" -> {
-                            String birthDate = studentReader.nextString();
-                            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                            LocalDate dt = LocalDate.parse(birthDate, fmt);
-                            student.setBirthDate(dt);
-                        }
-                        case "gender" -> {
-                            String gender = studentReader.nextString();
-                            if (gender.equalsIgnoreCase("m")) {
-                                student.setGender('M');
-                            } else {
-                                student.setGender('F');
-                            }
-                        }
-                        case "height" -> {
-                            try {
-                                student.setHeight((float) studentReader.nextDouble());
-                            } catch (Exception e) {
-                                // height = null
-                                studentReader.skipValue();
-                            }
-                        }
-                        case "weight" -> {
-                            try {
-                                student.setWeight((float) studentReader.nextDouble());
-                            } catch (Exception e) {
-                                // weight = null
-                                studentReader.skipValue();
-                            }
-                        }
-                        case "classId" -> {
-                            try {
-                                student.setClassId(studentReader.nextString());
-                            } catch (Exception e) {
-                                // classId = null
-                                studentReader.skipValue();
-                            }
-                        }
-                        default -> studentReader.skipValue(); //avoid some unhandle events
-                    }
-                }
-                studentReader.endObject();
-                studentSet.add(student);
-                // update related clazz
-                for (Clazz clz : clazzSet) {
-                    if (clz.getClassId().equals(student.getClassId())) {
-                        clz.getStudents().add(student);
-                    }
-                }
-            }
-            studentReader.endArray();
+            reader.endArray();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error! Back to menu!");

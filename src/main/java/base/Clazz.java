@@ -9,7 +9,7 @@ public class Clazz implements Serializable {
     private String classId;
     private String name;
     private transient int numberStudent;
-    private transient Set<Student> students = new HashSet<>();
+    private Set<Student> students = new HashSet<>();
 
     public String getClassId() {
         return classId;
