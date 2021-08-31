@@ -17,7 +17,6 @@ public class Menu {
             return o1.getStudentId().compareTo(o2.getStudentId());
         }
     });
-
     private static final Set<Clazz> clazzSet = new TreeSet<>(new Comparator<>() {
         @Override
         public int compare(Clazz o1, Clazz o2) {
@@ -25,26 +24,9 @@ public class Menu {
         }
     });
 
-    private static final Map<Clazz, Set<Student>> clazzMapping = new TreeMap<>(new Comparator<>() {
-        @Override
-        public int compare(Clazz o1, Clazz o2) {
-            if (o1.getNumberStudent() == o2.getNumberStudent()) return 0;
-            else return o1.getNumberStudent() < o2.getNumberStudent() ? 1 : -1;
-        }
-    });
-
-    private static boolean checkIfClassIdExists(String classId) {
-        Clazz clazz = new Clazz();
-        clazz.setClassId(classId);
-        return clazzSet.contains(clazz);
-    }
-
-    private static boolean checkIfStudentIdExists(String studentId) {
-        Student student = new Student();
-        student.setStudentId(studentId);
-        return studentSet.contains(student);
-    }
-
+    // for searching purpose
+    private static final Map<String, Student> mapStudentWithId = new HashMap<>();
+    private static final Map<String, Clazz> mapClazzWithId = new HashMap<>();
 
     // function 1
     private static void newClass() {
@@ -53,7 +35,7 @@ public class Menu {
         while (true) {
             System.out.println("Class Id:");
             String classId = scanner.nextLine();
-            if (!checkIfClassIdExists(classId)) {
+            if (!mapClazzWithId.containsKey(classId)) {
                 clazz.setClassId(classId);
                 break;
             } else System.out.println("This class id already exists! Input again!\n");
@@ -63,7 +45,7 @@ public class Menu {
         clazz.setName(scanner.nextLine());
 
         clazzSet.add(clazz);
-        clazzMapping.put(clazz, clazz.getStudents());
+        mapClazzWithId.put(clazz.getClassId(), clazz);
         System.out.println("Successfully!\n");
 
         String c;
@@ -88,7 +70,7 @@ public class Menu {
         while (true) {
             System.out.println("Student Id:");
             String studentId = scanner.nextLine();
-            if (!checkIfStudentIdExists(studentId)) {
+            if (!mapStudentWithId.containsKey(studentId)) {
                 student.setStudentId(studentId);
                 break;
             } else System.out.println("This student id already exists! Input again!\n");
@@ -150,21 +132,16 @@ public class Menu {
         while (true) {
             System.out.println("Class id: ");
             String classId = scanner.nextLine();
-            if (checkIfClassIdExists(classId)) {
+            if (mapClazzWithId.containsKey(classId)) {
                 student.setClassId(classId);
                 break;
             } else System.out.println("This class id does not exist! Input again!\n");
         }
 
         studentSet.add(student);
+        mapStudentWithId.put(student.getStudentId(), student);
         // now find out the clazz of this student, to update data of the class
-        Clazz thisClazz = null;
-        for (Clazz c : clazzSet) {
-            if (c.getClassId().equals(student.getClassId())) {
-                thisClazz = c;
-                break;
-            }
-        }
+        Clazz thisClazz = mapClazzWithId.get(student.getClassId());
         // now add this student to student set of the class
         thisClazz.getStudents().add(student);
         System.out.println("Successfully!\n");
@@ -190,17 +167,12 @@ public class Menu {
         while (true) {
             System.out.println("Enter class id:");
             classId = scanner.nextLine();
-            if (checkIfClassIdExists(classId)) {
+            if (mapClazzWithId.containsKey(classId)) {
                 System.out.println("Class is found!");
-                Clazz thisClazz = null;
-                for (Clazz c : clazzSet) {
-                    if (c.getClassId().equals(classId)) {
-                        thisClazz = c;
-                        System.out.printf("%-10s%-30s%-20s\n", "Class Id", "Class name", "Number of stds");
-                        System.out.printf("%-10s%-30s%-20d\n", c.getClassId(), c.getName(), c.getNumberStudent());
-                        break;
-                    }
-                }
+                Clazz thisClazz = mapClazzWithId.get(classId);
+                System.out.printf("%-10s%-30s%-20s\n", "Class Id", "Class name", "Number of stds");
+                System.out.printf("%-10s%-30s%-20d\n", thisClazz.getClassId(), thisClazz.getName(),
+                        thisClazz.getNumberStudent());
                 System.out.println("Update class name: ");
                 thisClazz.setName(scanner.nextLine());
                 System.out.println("Successfully!");
@@ -230,20 +202,15 @@ public class Menu {
         while (true) {
             System.out.println("Enter student id:");
             studentId = scanner.nextLine();
-            if (checkIfStudentIdExists(studentId)) {
+            if (mapStudentWithId.containsKey(studentId)) {
                 System.out.println("Student is found!");
-                Student thisStudent = null;
-                for (Student s : studentSet) {
-                    if (s.getStudentId().equals(studentId)) {
-                        thisStudent = s;
-                        System.out.printf("%-10s%-40s%-20s%-10s%-10s%-10s%-10s%-20s\n", "Std Id", "Name", "Birth date", "Age",
-                                "Gender", "Height", "Weight", "Class Id");
-                        System.out.printf("%-10s%-40s%-20s%-10d%-10c%-10.1f%-10.1f%-20s\n", s.getStudentId(), s.getName(),
-                                s.getBirthDate().toString(), s.getAge(), s.getGender(),
-                                s.getHeight(), s.getWeight(), s.getClassId());
-                        break;
-                    }
-                }
+                Student thisStudent = mapStudentWithId.get(studentId);
+                System.out.printf("%-10s%-40s%-20s%-10s%-10s%-10s%-10s%-20s\n", "Std Id", "Name", "Birth date", "Age",
+                        "Gender", "Height", "Weight", "Class Id");
+                System.out.printf("%-10s%-40s%-20s%-10d%-10c%-10.1f%-10.1f%-20s\n",
+                        thisStudent.getStudentId(), thisStudent.getName(),
+                        thisStudent.getBirthDate().toString(), thisStudent.getAge(), thisStudent.getGender(),
+                        thisStudent.getHeight(), thisStudent.getWeight(), thisStudent.getClassId());
                 // update name
                 System.out.println("Name:");
                 thisStudent.setName(scanner.nextLine());
@@ -301,17 +268,13 @@ public class Menu {
                 while (true) {
                     System.out.println("Class id: ");
                     String classId = scanner.nextLine();
-                    if (checkIfClassIdExists(classId)) {
+                    if (mapClazzWithId.containsKey(classId)) {
                         // remove the student in old clazz
                         // and add it to new clazz
-                        for (Clazz clz : clazzSet) {
-                            if (clz.getClassId().equals(thisStudent.getClassId())) {
-                                clz.getStudents().remove(thisStudent);
-                            }
-                            if (clz.getClassId().equals(classId)) {
-                                clz.getStudents().add(thisStudent);
-                            }
-                        }
+                        Clazz oldClazz = mapClazzWithId.get(thisStudent.getClassId());
+                        Clazz newClazz = mapClazzWithId.get(classId);
+                        oldClazz.getStudents().remove(thisStudent);
+                        newClazz.getStudents().add(thisStudent);
                         thisStudent.setClassId(classId);
                         break;
                     } else System.out.println("This class id does not exist! Input again!\n");
@@ -320,7 +283,7 @@ public class Menu {
                 System.out.println("Successfully!");
                 break;
             } else {
-                System.out.println("This class id does not exist! Input again!\n");
+                System.out.println("This student id does not exist! Input again!\n");
             }
         }
 
@@ -346,17 +309,13 @@ public class Menu {
         while (true) {
             System.out.println("Enter class id:");
             classId = scanner.nextLine();
-            if (checkIfClassIdExists(classId)) {
+            if (mapClazzWithId.containsKey(classId)) {
                 System.out.println("Class is found!");
-                Clazz thisClazz = null;
-                for (Clazz c : clazzSet) {
-                    if (c.getClassId().equals(classId)) {
-                        thisClazz = c;
-                        System.out.printf("%-10s%-30s%-20s\n", "Class Id", "Class name", "Number of stds");
-                        System.out.printf("%-10s%-30s%-20d\n", c.getClassId(), c.getName(), c.getNumberStudent());
-                        break;
-                    }
-                }
+                Clazz thisClazz = mapClazzWithId.get(classId);
+                System.out.printf("%-10s%-30s%-20s\n", "Class Id", "Class name", "Number of stds");
+                System.out.printf("%-10s%-30s%-20d\n", thisClazz.getClassId(), thisClazz.getName(),
+                        thisClazz.getNumberStudent());
+
                 // confirm to delete
                 String c;
                 do {
@@ -374,7 +333,6 @@ public class Menu {
                         deleteStudents.forEach(studentSet::remove);
                         // delete this class from Set students of clazz object
                         clazzSet.remove(thisClazz);
-                        clazzMapping.remove(thisClazz);
                         System.out.println("Successfully!");
                         return;
                     }
@@ -399,20 +357,15 @@ public class Menu {
         while (true) {
             System.out.println("Enter student id:");
             studentId = scanner.nextLine();
-            if (checkIfStudentIdExists(studentId)) {
+            if (mapStudentWithId.containsKey(studentId)) {
                 System.out.println("Student is found!");
-                Student thisStudent = null;
-                for (Student s : studentSet) {
-                    if (s.getStudentId().equals(studentId)) {
-                        thisStudent = s;
-                        System.out.printf("%-10s%-40s%-20s%-10s%-10s%-10s%-10s%-20s\n", "Std Id", "Name", "Birth date", "Age",
-                                "Gender", "Height", "Weight", "Class Id");
-                        System.out.printf("%-10s%-40s%-20s%-10d%-10c%-10.1f%-10.1f%-20s\n", s.getStudentId(), s.getName(),
-                                s.getBirthDate().toString(), s.getAge(), s.getGender(),
-                                s.getHeight(), s.getWeight(), s.getClassId());
-                        break;
-                    }
-                }
+                Student thisStudent = mapStudentWithId.get(studentId);
+                System.out.printf("%-10s%-40s%-20s%-10s%-10s%-10s%-10s%-20s\n", "Std Id", "Name", "Birth date", "Age",
+                        "Gender", "Height", "Weight", "Class Id");
+                System.out.printf("%-10s%-40s%-20s%-10d%-10c%-10.1f%-10.1f%-20s\n", thisStudent.getStudentId(), thisStudent.getName(),
+                        thisStudent.getBirthDate().toString(), thisStudent.getAge(), thisStudent.getGender(),
+                        thisStudent.getHeight(), thisStudent.getWeight(), thisStudent.getClassId());
+
                 // confirm to delete
                 String c;
                 do {
@@ -502,7 +455,7 @@ public class Menu {
     private static void exportBin() {
         System.out.println("Export to \"data.bin\"");
         try (FileOutputStream fosClazz = new FileOutputStream("G:\\data.bin");
-             ObjectOutputStream oosClazz = new ObjectOutputStream(fosClazz);) {
+             ObjectOutputStream oosClazz = new ObjectOutputStream(fosClazz)) {
             //
             for (Clazz c : clazzSet) {
                 oosClazz.writeObject(c);
@@ -533,7 +486,6 @@ public class Menu {
         System.out.println("Import data from \"data.json\":");
         studentSet.clear();
         clazzSet.clear();
-        clazzMapping.clear();
         // import clazz to clazzSet
         try (JsonReader reader = new JsonReader(new FileReader("G:\\data.json"))) {
             reader.beginArray();
@@ -602,20 +554,22 @@ public class Menu {
                                                 reader.skipValue();
                                             }
                                         }
-                                        default -> reader.skipValue(); //avoid some unhandle events
+                                        default -> reader.skipValue(); //avoid some unhandled events
                                     }
                                 }
                                 reader.endObject();
                                 clazz.getStudents().add(student);
                                 studentSet.add(student);
+                                mapStudentWithId.put(student.getStudentId(), student);
                             }
                             reader.endArray();
                         }
-                        default -> reader.skipValue(); //avoid some unhandle events
+                        default -> reader.skipValue(); //avoid some unhandled events
                     }
                 }
                 reader.endObject();
                 clazzSet.add(clazz);
+                mapClazzWithId.put(clazz.getClassId(), clazz);
             }
             reader.endArray();
         } catch (Exception e) {
