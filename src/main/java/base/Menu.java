@@ -414,17 +414,17 @@ public class Menu {
     private static void exportJSON() {
         System.out.println("Export to \"data.json\"");
         try (JsonWriter writer = new JsonWriter(new FileWriter("G:\\data.json"))) {
-            writer.beginArray();
+            writer.beginArray(); //viết dấu "[" mở đầu array json
             Clazz[] clazzArray = clazzSet.toArray(new Clazz[0]);
             MergeSort<Clazz, ClazzNStudentComparator> clazzSorter = new MergeSort<>();
             clazzSorter.mergeSort(clazzArray, 0, clazzArray.length - 1, new ClazzNStudentComparator());
             for (Clazz c : clazzArray) {
-                writer.beginObject();
+                writer.beginObject(); //viết dấu "{" mở đầu object json
                 writer.name("classId").value(c.getClassId());
                 writer.name("name").value(c.getName());
                 writer.name("number of student").value(c.getNumberStudent());
                 writer.name("students");
-                writer.beginArray();
+                writer.beginArray(); //viết dấu "[" mở đầu array json trong object json
                 Student[] studentArray = c.getStudents().toArray(new Student[0]);
                 MergeSort<Student, StudentHeightComparator> studentSorter = new MergeSort<>();
                 studentSorter.mergeSort(studentArray, 0, studentArray.length - 1, new StudentHeightComparator());
@@ -437,7 +437,7 @@ public class Menu {
                     writer.name("height").value(s.getHeight());
                     writer.name("weight").value(s.getWeight());
                     writer.name("classId").value(s.getClassId());
-                    writer.endObject();
+                    writer.endObject(); // dấu đóng tương ứng từ trong ra ngoài
                 }
                 writer.endArray();
                 writer.endObject();
@@ -488,21 +488,21 @@ public class Menu {
         clazzSet.clear();
         // import clazz to clazzSet
         try (JsonReader reader = new JsonReader(new FileReader("G:\\data.json"))) {
-            reader.beginArray();
-            while (reader.hasNext()) {
+            reader.beginArray(); // đọc dấu "["
+            while (reader.hasNext()) { // check xem mảng json này còn object nào tiếp theo ko
                 Clazz clazz = new Clazz();
-                reader.beginObject();
+                reader.beginObject(); // đọc dấu "{"
                 while (reader.hasNext()) {
-                    String field1 = reader.nextName();
+                    String field1 = reader.nextName(); // reader đọc tên trường tiếp theo của object json
                     // id notnull; name nullable
                     switch (field1) {
-                        case "classId" -> clazz.setClassId(reader.nextString());
+                        case "classId" -> clazz.setClassId(reader.nextString()); // reader đọc giá trị của trường
                         case "name" -> {
                             try {
                                 clazz.setName(reader.nextString());
                             } catch (Exception e) {
                                 // name = null
-                                reader.skipValue();
+                                reader.skipValue();  // bỏ qua trường đó
                             }
                         }
                         case "students" -> {
